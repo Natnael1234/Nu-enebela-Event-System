@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — SaNex Realities</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════
+     ADMIN LOGIN
+════════════════════════════════════════════════════════ -->
+<div id="adminLoginView" class="admin-login-wrap">
+  <div class="portal-card" style="max-width:420px">
+    <div class="portal-logo">
+      <div class="brand" style="font-size:1.05rem">SaNex Realities</div>
+      <p class="text-muted text-xs mt-4">Admin Panel</p>
+    </div>
+    <h2 class="portal-title">Sign In</h2>
+    <p class="portal-sub">Authorized personnel only</p>
+
+    <form id="loginForm" class="form-stack">
+      <div class="field">
+        <label for="adm-email">Email</label>
+        <input class="input" type="email" id="adm-email" name="email" placeholder="admin@example.com" required autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="adm-pass">Password</label>
+        <input class="input" type="password" id="adm-pass" name="password" placeholder="••••••••" required autocomplete="current-password" />
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary btn-full btn-lg">Sign In</button>
+      </div>
+    </form>
+    <div id="loginMsg" class="mt-12"></div>
+
+    <div class="divider"></div>
+    <p class="text-dim text-xs text-center">First time? <span class="text-accent" style="cursor:pointer" onclick="toggleSignup(true)">Create admin account →</span></p>
+
+    <form id="signupForm" class="form-stack hidden" style="margin-top:16px">
+      <div class="field">
+        <label for="su-name">Full Name</label>
+        <input class="input" type="text" id="su-name" name="fullName" required />
+      </div>
+      <div class="field">
+        <label for="su-email">Email</label>
+        <input class="input" type="email" id="su-email" name="email" required />
+      </div>
+      <div class="field">
+        <label for="su-pass">Password (min 8 chars)</label>
+        <input class="input" type="password" id="su-pass" name="password" minlength="8" required />
+      </div>
+      <button type="submit" class="btn btn-ghost btn-full">Create Account</button>
+      <button type="button" class="btn btn-ghost btn-full btn-sm" onclick="toggleSignup(false)">← Back to Login</button>
+    </form>
+    <div id="signupMsg" class="mt-12"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     ADMIN APP
+════════════════════════════════════════════════════════ -->
+<div id="adminApp" class="admin-shell hidden">
+
+  <!-- Sidebar overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">SaNex Realities</div>
+      <div class="admin-role" id="adminRole">Loading...</div>
+      <div class="admin-name" id="adminName">--</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <button class="nav-link active" data-page="overview" onclick="navTo('overview')">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Overview
+      </button>
+      <button class="nav-link" data-page="payments" onclick="navTo('payments')">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+        Payments
+        <span class="nav-badge hidden" id="paymentsBadge">0</span>
+      </button>
+
+      <div class="nav-section-label" style="margin-top:4px">Queue Stations</div>
+      <button class="nav-link" data-page="queue1" onclick="navTo('queue1')">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        Station 1
+        <span class="nav-badge hidden" id="q1Badge">0</span>
+      </button>
+      <button class="nav-link" data-page="queue2" onclick="navTo('queue2')">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        Station 2
+        <span class="nav-badge hidden" id="q2Badge">0</span>
+      </button>
+
+      <div class="nav-section-label" style="margin-top:4px">Manage</div>
+      <button class="nav-link" data-page="feedback" onclick="navTo('feedback')">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Feedback
+        <span class="nav-badge hidden" id="feedbackBadge">0</span>
+      </button>
+      <button class="nav-link" data-page="bookings" onclick="navTo('bookings')">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Bookings
+      </button>
+      <button class="nav-link" data-page="finance" onclick="navTo('finance')">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        Finance
+      </button>
+      <button class="nav-link" data-page="settings" onclick="navTo('settings')">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Settings
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="nav-link" onclick="adminLogout()">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Logout
+      </button>
+      <a href="/display.html" target="_blank" class="nav-link mt-4">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        Open Display Screen
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="admin-main">
+    <!-- Topbar -->
+    <header class="admin-topbar">
+      <div class="hamburger" id="hamburger" onclick="openSidebar()">
+        <span></span><span></span><span></span>
+      </div>
+      <div>
+        <div class="topbar-title" id="topbarTitle">Overview</div>
+        <div class="topbar-subtitle">SaNex Realities Admin</div>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+        <div class="flex items-center gap-8">
+          <div class="pulse-dot"></div>
+          <span class="text-sm text-muted">Live</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="admin-content">
+
+      <!-- ── OVERVIEW ──────────────────────────────────────────── -->
+      <section class="admin-page active" id="page-overview">
+        <div class="page-header">
+          <h2>Overview</h2>
+          <p>Live snapshot of today's event activity</p>
+        </div>
+        <div class="grid-4 mb-20" id="statsGrid">
+          <!-- injected by JS -->
+        </div>
+        <div class="section-card">
+          <div class="section-head"><h3>Recent Activity</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Player</th>
+                  <th>Station</th>
+                  <th>Status</th>
+                  <th>Queue #</th>
+                  <th>Score</th>
+                </tr>
+              </thead>
+              <tbody id="recentActivityBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── PAYMENTS ──────────────────────────────────────────── -->
+      <section class="admin-page" id="page-payments">
+        <div class="page-header">
+          <h2>Payment Approvals</h2>
+          <p>Review and approve or reject payment screenshots</p>
+        </div>
+        <div id="pendingPaymentsList" class="flex flex-col gap-12">
+          <div class="section-empty">No pending payments.</div>
+        </div>
+      </section>
+
+      <!-- ── QUEUE STATION 1 ───────────────────────────────────── -->
+      <section class="admin-page" id="page-queue1">
+        <div class="page-header">
+          <h2>Station 1 Queue</h2>
+          <p id="q1GameName" class="text-muted">--</p>
+        </div>
+        <div class="grid-2">
+          <div class="station-card">
+            <div class="station-head">
+              <div class="station-num">1</div>
+              <div>
+                <div style="font-weight:700">Active Player</div>
+                <div class="text-muted text-sm">Manage the current session</div>
+              </div>
+            </div>
+            <div class="station-body">
+              <div id="q1NowPlaying">
+                <div class="section-empty" style="padding:20px 0">No active player on Station 1</div>
+              </div>
+              <div class="score-panel mt-16" id="q1ScorePanel">
+                <input class="input" type="number" id="q1ScoreInput" placeholder="Enter score..." step="1" />
+                <button class="btn btn-success" onclick="completeStation(1)">Complete + Save Score</button>
+                <button class="btn btn-warning" onclick="missedStation(1)">Mark Missed</button>
+              </div>
+              <div id="q1ControlMsg" class="mt-12"></div>
+              <button class="btn btn-primary btn-full mt-16" onclick="startNextStation(1)">
+                Start Next Player →
+              </button>
+            </div>
+          </div>
+
+          <div class="station-card">
+            <div class="station-head">
+              <div class="station-num">1</div>
+              <div>
+                <div style="font-weight:700">Waiting Queue</div>
+                <div class="text-muted text-sm">Players booked for Station 1</div>
+              </div>
+            </div>
+            <div class="station-body">
+              <div id="q1WaitingList" class="waiting-list overflow-scroll">
+                <div class="section-empty">Queue is empty.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── QUEUE STATION 2 ───────────────────────────────────── -->
+      <section class="admin-page" id="page-queue2">
+        <div class="page-header">
+          <h2>Station 2 Queue</h2>
+          <p id="q2GameName" class="text-muted">--</p>
+        </div>
+        <div class="grid-2">
+          <div class="station-card">
+            <div class="station-head">
+              <div class="station-num">2</div>
+              <div>
+                <div style="font-weight:700">Active Player</div>
+                <div class="text-muted text-sm">Manage the current session</div>
+              </div>
+            </div>
+            <div class="station-body">
+              <div id="q2NowPlaying">
+                <div class="section-empty" style="padding:20px 0">No active player on Station 2</div>
+              </div>
+              <div class="score-panel mt-16" id="q2ScorePanel">
+                <input class="input" type="number" id="q2ScoreInput" placeholder="Enter score..." step="1" />
+                <button class="btn btn-success" onclick="completeStation(2)">Complete + Save Score</button>
+                <button class="btn btn-warning" onclick="missedStation(2)">Mark Missed</button>
+              </div>
+              <div id="q2ControlMsg" class="mt-12"></div>
+              <button class="btn btn-primary btn-full mt-16" onclick="startNextStation(2)">
+                Start Next Player →
+              </button>
+            </div>
+          </div>
+
+          <div class="station-card">
+            <div class="station-head">
+              <div class="station-num">2</div>
+              <div>
+                <div style="font-weight:700">Waiting Queue</div>
+                <div class="text-muted text-sm">Players booked for Station 2</div>
+              </div>
+            </div>
+            <div class="station-body">
+              <div id="q2WaitingList" class="waiting-list overflow-scroll">
+                <div class="section-empty">Queue is empty.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── BOOKINGS ──────────────────────────────────────────── -->
+      <section class="admin-page" id="page-bookings">
+        <div class="page-header">
+          <h2>All Bookings</h2>
+          <p>View, manage scores, and attach gameplay media</p>
+        </div>
+        <div class="section-card mb-20">
+          <div class="section-head">
+            <h3>Filter</h3>
+          </div>
+          <div class="section-body">
+            <div class="flex items-center gap-10 flex-wrap">
+              <select class="input" id="bookingFilter" onchange="loadBookings()" style="max-width:220px;background:var(--bg-2);color:var(--text);border-color:var(--border-2)">
+                <option value="" style="background:var(--bg-2)">All Bookings</option>
+                <option value="completed" style="background:var(--bg-2)">Completed</option>
+                <option value="playing" style="background:var(--bg-2)">Playing</option>
+                <option value="approved_waiting" style="background:var(--bg-2)">Waiting</option>
+                <option value="payment_review" style="background:var(--bg-2)">Payment Review</option>
+                <option value="payment_rejected" style="background:var(--bg-2)">Payment Rejected</option>
+                <option value="missed_waiting" style="background:var(--bg-2)">Missed Pool</option>
+              </select>
+              <select class="input" id="stationFilter" onchange="loadBookings()" style="max-width:180px;background:var(--bg-2);color:var(--text);border-color:var(--border-2)">
+                <option value="" style="background:var(--bg-2)">Both Stations</option>
+                <option value="station_1" style="background:var(--bg-2)">Station 1</option>
+                <option value="station_2" style="background:var(--bg-2)">Station 2</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div id="bookingsList" class="flex flex-col gap-12">
+          <div class="section-empty">Loading bookings...</div>
+        </div>
+      </section>
+
+      <!-- ── FINANCE ──────────────────────────────────────────── -->
+      <section class="admin-page" id="page-finance">
+        <div class="page-header">
+          <h2>Finance</h2>
+          <p>Revenue tracking for the event</p>
+        </div>
+        <div class="grid-4 mb-20" id="financeStatsGrid"></div>
+        <div class="grid-2">
+          <div class="section-card">
+            <div class="section-head"><h3>Revenue by Station</h3></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Station</th><th>Bookings</th><th>Revenue</th></tr></thead>
+                <tbody id="financeByGame"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="section-card">
+            <div class="section-head"><h3>Summary</h3></div>
+            <div class="section-body" id="financeSummary"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── FEEDBACK ─────────────────────────────────────────── -->
+      <section class="admin-page" id="page-feedback">
+        <div class="page-header">
+          <h2>Player Feedback</h2>
+          <p>Ratings and comments submitted by players after their sessions</p>
+        </div>
+        <div class="grid-4 mb-20" id="feedbackStatsGrid"></div>
+        <div id="feedbackList" class="flex flex-col gap-12">
+          <div class="section-empty">Loading feedback...</div>
+        </div>
+      </section>
+
+      <!-- ── SETTINGS ─────────────────────────────────────────── -->
+      <section class="admin-page" id="page-settings">
+        <div class="page-header">
+          <h2>Settings</h2>
+          <p>Update payment accounts and game information</p>
+        </div>
+        <div class="grid-2">
+          <div class="section-card">
+            <div class="section-head"><h3>Payment Accounts</h3></div>
+            <div class="section-body">
+              <form id="paymentSettingsForm" class="form-stack">
+                <div class="field">
+                  <label>Account Holder Name</label>
+                  <input class="input" type="text" id="settingsHolderName" name="holderName" placeholder="e.g. SaNex Realities" />
+                </div>
+                <div class="field">
+                  <label>Telebirr Account Number</label>
+                  <input class="input" type="text" id="settingsTelebirr" name="telebirr" placeholder="09XXXXXXXX" />
+                </div>
+                <div class="field">
+                  <label>CBE Account Number</label>
+                  <input class="input" type="text" id="settingsCbe" name="cbe" placeholder="Account number" />
+                </div>
+                <div class="field">
+                  <label>Missed Reinsertion Interval (every N players)</label>
+                  <input class="input" type="number" id="settingsMissed" name="missedInsertEvery" min="1" max="20" placeholder="4" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save Payment Settings</button>
+              </form>
+              <div id="settingsMsg" class="mt-12"></div>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-head"><h3>Game Information</h3></div>
+            <div class="section-body">
+              <p class="text-muted text-sm mb-16">The system has 2 fixed stations. You can update names and descriptions below.</p>
+              <div id="gameSettingsList" class="flex flex-col gap-16">
+                <!-- injected -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- Screenshot Modal -->
+<div id="screenshotModal" class="hidden" style="
+  position:fixed;inset:0;z-index:9999;
+  background:rgba(0,0,0,.88);
+  display:none;
+  align-items:center;justify-content:center;
+  padding:20px;
+" onclick="closeModal()">
+  <div style="
+    max-width:90vw;max-height:90vh;
+    background:var(--surface-2);
+    border:1px solid var(--border-2);
+    border-radius:var(--r-lg);
+    overflow:hidden;
+    display:flex;flex-direction:column;
+  " onclick="event.stopPropagation()">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <span style="font-weight:700">Payment Screenshot</span>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">✕ Close</button>
+    </div>
+    <div style="overflow:auto;flex:1;padding:12px;display:flex;align-items:center;justify-content:center">
+      <img id="modalImg" src="" alt="Payment Screenshot" style="max-width:100%;max-height:70vh;border-radius:var(--r-sm);display:block" />
+    </div>
+  </div>
+</div>
+
+<script src="/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+node_modules/
+uploads/payments/
+uploads/gameplay/
+uploads/games/
+data/db.json
+npm-debug.log*

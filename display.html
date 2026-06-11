@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SaNex Live Display</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+</head>
+<body>
+<div class="display-shell">
+
+  <!-- Header -->
+  <div class="display-header">
+    <div>
+      <div class="display-logo brand">SaNex Realities</div>
+      <div class="text-dim text-xs" style="letter-spacing:.1em;margin-top:2px">VIRTUAL &amp; MIXED REALITY GAMING</div>
+    </div>
+    <div style="text-align:center">
+      <div class="display-clock" id="clock">--:--:--</div>
+    </div>
+    <div class="display-event" style="text-align:right">
+      <div>NU ENEBLA 2026</div>
+      <div style="margin-top:4px;font-size:.75rem;color:var(--accent)">LIVE QUEUE</div>
+    </div>
+  </div>
+
+  <!-- Two stations -->
+  <div class="display-stations" id="displayStations">
+    <!-- Station 1 -->
+    <div class="display-station">
+      <div class="ds-header">
+        <div class="ds-station-num">1</div>
+        <div>
+          <div class="ds-title" id="ds1Title">Station 1</div>
+          <div class="ds-game" id="ds1Game">Loading...</div>
+        </div>
+      </div>
+      <div class="ds-body">
+        <div class="ds-now-playing" id="ds1Now">
+          <div class="ds-now-label">Now Playing</div>
+          <div class="ds-empty-state">Waiting for next player...</div>
+        </div>
+        <div class="ds-next" id="ds1Next">
+          <div class="ds-next-label">Up Next</div>
+          <div class="ds-empty-state text-dim text-sm" id="ds1NextEmpty">No one in queue</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Station 2 -->
+    <div class="display-station">
+      <div class="ds-header">
+        <div class="ds-station-num">2</div>
+        <div>
+          <div class="ds-title" id="ds2Title">Station 2</div>
+          <div class="ds-game" id="ds2Game">Loading...</div>
+        </div>
+      </div>
+      <div class="ds-body">
+        <div class="ds-now-playing" id="ds2Now">
+          <div class="ds-now-label">Now Playing</div>
+          <div class="ds-empty-state">Waiting for next player...</div>
+        </div>
+        <div class="ds-next" id="ds2Next">
+          <div class="ds-next-label">Up Next</div>
+          <div class="ds-empty-state text-dim text-sm" id="ds2NextEmpty">No one in queue</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaderboard — two stations side by side -->
+  <div class="display-lb-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="display-leaderboard">
+      <div class="dlb-title brand" id="dlbTitle1">Station 1 — Top Scores</div>
+      <div id="dlbRows1"><div style="color:var(--text-3);font-size:.88rem">No scores yet.</div></div>
+    </div>
+    <div class="display-leaderboard">
+      <div class="dlb-title brand" id="dlbTitle2">Station 2 — Top Scores</div>
+      <div id="dlbRows2"><div style="color:var(--text-3);font-size:.88rem">No scores yet.</div></div>
+    </div>
+  </div>
+
+</div>
+
+  <!-- Contact strip -->
+  <div class="display-contact">
+    <div class="dc-item">🌐 <strong>sanexrealities.com</strong></div>
+    <div class="dc-item">📸
+      <a href="https://www.instagram.com/p/DZIGVkiETaR/?img_index=2&igsh=enpueTEyODY3Y2Fz"
+         target="_blank" style="color:var(--accent);font-weight:700">Instagram</a>
+    </div>
+    <div class="dc-item">✉️ <strong>sanexrealities@gmail.com</strong></div>
+    <div class="dc-item">📞 <strong>0954908037</strong></div>
+  </div>
+
+<script src="/display.js"></script>
+</body>
+</html>
