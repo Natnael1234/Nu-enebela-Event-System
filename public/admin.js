@@ -692,14 +692,19 @@ async function loadGameSettings() {
     data.games.forEach((game, idx) => {
       const div = document.createElement('div');
 
-      const currentMediaHtml = game.imagePath || game.videoPath ? `
-        <div style="margin-bottom:10px">
+      const isVideo = !!game.videoPath;
+      const mediaHeight = isVideo ? '200px' : '120px';
+      const mediaFit    = isVideo ? 'contain' : 'cover';
+      const mediaSrc    = isVideo ? game.videoPath : game.imagePath;
+      const mediaEl     = isVideo
+        ? `<video src="/${esc(mediaSrc)}" muted loop autoplay playsinline style="width:100%;height:100%;object-fit:${mediaFit};background:#000"></video>`
+        : `<img src="/${esc(mediaSrc)}" alt="" style="width:100%;height:100%;object-fit:${mediaFit}" />`;
+
+      const currentMediaHtml = mediaSrc ? `
+        <div style="margin-bottom:12px">
           <p class="text-dim text-xs" style="margin-bottom:6px">Current Media</p>
-          <div style="width:100%;height:120px;border-radius:var(--r-sm);overflow:hidden;background:#0a0e1a;border:1px solid var(--border)">
-            ${game.videoPath
-              ? `<video src="/${esc(game.videoPath)}" muted loop autoplay playsinline style="width:100%;height:100%;object-fit:cover"></video>`
-              : `<img src="/${esc(game.imagePath)}" alt="" style="width:100%;height:100%;object-fit:cover" />`
-            }
+          <div style="width:100%;height:${mediaHeight};border-radius:var(--r-sm);overflow:hidden;background:#000;border:1px solid var(--border);display:flex;align-items:center;justify-content:center">
+            ${mediaEl}
           </div>
         </div>` : '';
 

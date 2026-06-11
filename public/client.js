@@ -68,15 +68,24 @@ function refreshGameGrid() {
   const grid = document.getElementById('gameGrid');
   grid.innerHTML = '';
 
-  if (!_gamesCache.length) {
-    grid.innerHTML = '<p class="text-muted text-sm">Loading games...</p>';
-    prefetchInfo().then(() => refreshGameGrid());
-    return;
-  }
+  // Always fetch fresh so newly uploaded media shows immediately
+  apiFetch('/api/info').then((data) => {
+    _infoCache  = data;
+    _gamesCache = data.games || [];
+    renderGameGrid();
+  }).catch(() => {
+    if (_gamesCache.length) renderGameGrid();
+    else grid.innerHTML = '<p class="text-muted text-sm">Could not load games. Please refresh.</p>';
+  });
+}
+
+function renderGameGrid() {
+  const grid = document.getElementById('gameGrid');
+  grid.innerHTML = '';
 
   _gamesCache.forEach((game) => {
-    const counts   = _infoCache?.queueCounts?.[game.id] || {};
-    const waiting  = counts.waiting ?? 0;
+    const counts    = _infoCache?.queueCounts?.[game.id] || {};
+    const waiting   = counts.waiting ?? 0;
     const isPlaying = counts.isPlaying;
 
     const card = document.createElement('div');
@@ -86,20 +95,25 @@ function refreshGameGrid() {
     // Build media block: video > image > emoji fallback
     let mediaHtml = '';
     if (game.videoPath) {
+      // Portrait videos: use contain so nothing is cropped
       mediaHtml = `
-        <div class="game-media">
-          <video src="/${esc(game.videoPath)}" muted loop autoplay playsinline
-            style="width:100%;height:100%;object-fit:cover;display:block;border-radius:0"
-            onmouseenter="this.play()" onmouseleave="this.pause()"></video>
+        <div class="game-media game-media-video">
+          <video src="/${esc(game.videoPath)}"
+            muted loop autoplay playsinline preload="metadata"
+            style="width:100%;height:100%;object-fit:contain;display:block;background:#000"
+            onerror="this.parentElement.innerHTML='<div style=\\'padding:20px;text-align:center;font-size:2rem\\'>🥽</div>'">
+          </video>
         </div>`;
     } else if (game.imagePath) {
       mediaHtml = `
         <div class="game-media">
           <img src="/${esc(game.imagePath)}" alt="${esc(game.name)}"
-            style="width:100%;height:100%;object-fit:cover;display:block;border-radius:0" loading="lazy" />
+            style="width:100%;height:100%;object-fit:cover;display:block;border-radius:0"
+            loading="lazy"
+            onerror="this.parentElement.innerHTML='<div style=\\'padding:20px;text-align:center;font-size:2rem\\'>🥽</div>'" />
         </div>`;
     } else {
-      mediaHtml = `<div class="game-icon" style="padding-top:18px">🥽</div>`;
+      mediaHtml = `<div class="game-icon" style="padding:22px 0 8px">🥽</div>`;
     }
 
     card.innerHTML = `

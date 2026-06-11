@@ -551,10 +551,18 @@ tbody tr:hover td { background: var(--surface); }
 /* Media block (image or video) */
 .game-media {
   width: 100%;
-  height: 150px;
+  height: 160px;
   overflow: hidden;
   background: #0a0e1a;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Portrait videos get extra height so the full frame shows */
+.game-media-video {
+  height: 220px;
+  background: #000;
 }
 .game-card .game-icon { font-size: 2.2rem; padding-bottom: 0; }
 /* Info area below media */
@@ -1187,6 +1195,7 @@ tbody tr:hover td { background: var(--surface); }
   .choice-grid { grid-template-columns: 1fr; }
   .game-grid { grid-template-columns: 1fr; }
   .game-media { height: 180px; }
+  .game-media-video { height: 260px; }
   .grid-2 { grid-template-columns: 1fr; }
   .grid-4, .grid-3 { grid-template-columns: 1fr; }
   .admin-content { padding: 16px; }
