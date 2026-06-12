@@ -157,6 +157,32 @@ app.get('/api/queue/counts', (_req, res) => {
   res.json(buildQueueCounts(db));
 });
 
+// ─── Public feedback (no auth required) ──────────────────────────────────────
+app.post('/api/public-feedback',
+  rateLimit(3, 30 * 60 * 1000),
+  (req, res) => {
+    const db = readDb();
+    const rating = Number(req.body.rating);
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ error: 'Please select a rating between 1 and 5.' });
+    }
+    if (!db.feedback) db.feedback = [];
+    db.feedback.push({
+      id:        newId('pfbk'),
+      bookingId: null,
+      userId:    null,
+      gameId:    null,
+      type:      'public',
+      guestName: sanitize(req.body.name || '').slice(0, 80),
+      rating,
+      comment:   sanitize(req.body.comment || '').slice(0, 400),
+      createdAt: now(),
+    });
+    writeDb(db);
+    res.status(201).json({ ok: true });
+  }
+);
+
 app.get('/api/leaderboard', (_req, res) => {
   const db = readDb();
 

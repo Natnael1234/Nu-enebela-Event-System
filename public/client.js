@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('returningForm').addEventListener('submit', onReturning);
   document.getElementById('paymentForm').addEventListener('submit', onPayment);
   document.getElementById('feedbackForm').addEventListener('submit', onFeedback);
+  document.getElementById('publicFeedbackForm').addEventListener('submit', onPublicFeedback);
 
   if (S.token) {
     resumeSession();
@@ -40,9 +41,8 @@ function goStep(name) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Show footer only on landing
-  const footer = document.getElementById('landingFooter');
-  if (footer) footer.classList.toggle('hidden', name !== 'landing');
+  // Close feedback modal on any navigation
+  closeFeedbackModal();
 
   if (name !== 'queue') stopPoll();
   if (name === 'register') {
@@ -138,6 +138,54 @@ function selectGame(gameId) {
   document.querySelectorAll('.game-card').forEach((c) => {
     c.classList.toggle('selected', c.dataset.gameId === gameId);
   });
+}
+
+// ─── Public feedback modal ────────────────────────────────────────────────────
+function openFeedbackModal() {
+  const modal = document.getElementById('pfModal');
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeFeedbackModal() {
+  document.getElementById('pfModal').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeFeedbackModal();
+});
+
+// ─── Public feedback (landing page) ──────────────────────────────────────────
+async function onPublicFeedback(e) {
+  e.preventDefault();
+  const msgEl  = document.getElementById('pfMsg');
+  const rating = document.querySelector('input[name="pfRating"]:checked')?.value;
+  if (!rating) { setMsg(msgEl, 'Please select a star rating first.', 'error'); return; }
+
+  const btn = e.target.querySelector('[type=submit]');
+  try {
+    btnLoadClient(btn, true);
+    await fetch('/api/public-feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name:    document.getElementById('pfName').value,
+        rating:  Number(rating),
+        comment: document.getElementById('pfComment').value,
+      }),
+    }).then(async (r) => {
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Submission failed.');
+    });
+    document.getElementById('publicFeedbackForm').classList.add('hidden');
+    document.getElementById('pfSubmitted').classList.remove('hidden');
+    setMsg(msgEl, '', '');
+  } catch (err) {
+    setMsg(msgEl, err.message, 'error');
+  } finally {
+    btnLoadClient(btn, false);
+  }
 }
 
 // ─── Pre-fill register form for known users ───────────────────────────────────

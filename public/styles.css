@@ -385,10 +385,24 @@ tbody tr:hover td { background: var(--surface); }
 .landing-content {
   position: relative;
   z-index: 2;
-  max-width: 600px;
+  max-width: 560px;
   width: 100%;
   text-shadow: 0 2px 18px rgba(0,0,0,.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
 }
+
+/* Logo */
+.landing-logo-wrap { margin-bottom: 8px; }
+.landing-logo-img  {
+  max-height: 72px;
+  max-width: 220px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 18px rgba(124,110,255,.45));
+}
+
 .landing-tag {
   display: inline-block;
   padding: 5px 14px;
@@ -426,7 +440,7 @@ tbody tr:hover td { background: var(--surface); }
   letter-spacing: .06em;
   text-transform: uppercase;
 }
-.landing-actions { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.landing-actions { display: flex; flex-direction: column; gap: 12px; align-items: center; margin-top: 8px; }
 .returning-link {
   font-size: .88rem;
   color: var(--text-2);
@@ -436,6 +450,118 @@ tbody tr:hover td { background: var(--surface); }
 }
 .returning-link:hover { color: var(--accent); }
 .returning-link span { text-decoration: underline; }
+
+/* ─── Landing contact strip (inside hero, no scroll needed) ─── */
+.landing-contact-strip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 16px;
+  margin-top: 18px;
+  padding: 12px 16px;
+  background: rgba(4,6,16,.65);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: var(--r);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  max-width: 100%;
+}
+.lcs-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .82rem;
+  color: var(--text-2);
+  text-decoration: none;
+  transition: color .2s;
+  padding: 3px 0;
+}
+.lcs-item:hover { color: var(--accent); }
+.lcs-icon { font-size: 1rem; line-height: 1; }
+.lcs-insta { filter: drop-shadow(0 0 4px rgba(225,48,108,.6)); }
+
+/* ─── Public feedback modal ─────────────────────────────────── */
+.pf-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 8000;
+  background: rgba(0,0,0,.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: fadeIn .15s ease;
+}
+.pf-modal-backdrop.hidden { display: none; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.pf-modal-box {
+  background: #0d1628;
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-xl);
+  padding: 26px 24px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 30px 70px rgba(0,0,0,.7), 0 0 0 1px rgba(124,110,255,.15);
+  animation: slideUp .2s ease;
+  max-height: 92vh;
+  overflow-y: auto;
+}
+
+.pf-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.pf-close-btn {
+  background: var(--surface-2);
+  border: 1px solid var(--border-2);
+  color: var(--text-2);
+  border-radius: 50%;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: .9rem;
+  flex-shrink: 0;
+  transition: background .15s, color .15s;
+}
+.pf-close-btn:hover { background: var(--danger-bg); color: var(--danger); }
+
+.pf-logo-icon {
+  width: 42px; height: 42px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px rgba(124,110,255,.5));
+  flex-shrink: 0;
+}
+.pf-title {
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.pf-sub { font-size: .82rem; color: var(--text-2); }
+.pf-form { display: flex; flex-direction: column; gap: 14px; }
+.pf-submitted {
+  text-align: center;
+  padding: 20px;
+  background: var(--success-bg);
+  border: 1px solid rgba(0,229,160,.3);
+  border-radius: var(--r);
+  color: var(--success);
+  font-weight: 600;
+  font-size: 1rem;
+}
+.pf-footer-copy {
+  font-size: .74rem;
+  color: var(--text-3);
+  text-align: center;
+}
 
 /* ═══════════════════════════════════════════════════════════
    CLIENT PORTAL — WIZARD STEPS

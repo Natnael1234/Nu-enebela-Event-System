@@ -630,15 +630,25 @@ async function loadFeedback() {
     }
 
     list.forEach((f) => {
+      const isPublic   = f.type === 'public';
+      const displayName = isPublic
+        ? (f.guestName || 'Anonymous visitor')
+        : (f.user?.fullName || 'Unknown');
+      const avatar = displayName[0]?.toUpperCase() || '?';
+
       const div = document.createElement('div');
       div.className = 'feedback-item';
       div.innerHTML = `
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap">
           <div style="display:flex;align-items:center;gap:10px">
-            <div class="player-avatar">${esc(f.user?.fullName?.[0] || '?')}</div>
+            <div class="player-avatar" style="${isPublic ? 'background:linear-gradient(135deg,#00d4ff,#7c6eff)' : ''}">${esc(avatar)}</div>
             <div>
-              <div style="font-weight:700">${esc(f.user?.fullName || 'Unknown')}</div>
-              <div class="fb-meta">${esc(f.game?.name || '--')} · Station ${f.game?.stationNumber || '--'}</div>
+              <div style="font-weight:700">${esc(displayName)}</div>
+              <div class="fb-meta">
+                ${isPublic
+                  ? '<span class="badge badge-info" style="font-size:.7rem">Public Feedback</span>'
+                  : `${esc(f.game?.name || '--')} · Station ${f.game?.stationNumber || '--'}`}
+              </div>
             </div>
           </div>
           <div class="fb-stars">${'★'.repeat(f.rating)}${'☆'.repeat(5 - f.rating)}</div>
