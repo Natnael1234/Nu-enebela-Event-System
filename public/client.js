@@ -191,23 +191,15 @@ async function onPublicFeedback(e) {
 // ─── Pre-fill register form for known users ───────────────────────────────────
 function prefillRegisterForm(user) {
   if (!user) return;
-  refreshGameGrid(); // ensure game cards are rendered
-
-  const nameEl     = document.getElementById('reg-name');
-  const phoneEl    = document.getElementById('reg-phone');
-  const telegramEl = document.getElementById('reg-telegram');
-
-  if (nameEl)     { nameEl.value     = user.fullName    || ''; }
-  if (phoneEl)    { phoneEl.value    = user.phoneNumber || ''; }
-  if (telegramEl) { telegramEl.value = user.telegram    || ''; }
-
-  // Show a welcome-back note inside the form
+  refreshGameGrid();
+  const nameEl = document.getElementById('reg-name');
+  if (nameEl) nameEl.value = user.fullName || '';
   const msgEl = document.getElementById('registerMsg');
   if (msgEl) {
     msgEl.innerHTML = `
       <div class="alert alert-info" style="margin-top:0;margin-bottom:4px">
         <span>👋</span>
-        <span>Welcome back, <strong>${esc(user.fullName)}</strong>! Your details are pre-filled — just pick a game and continue.</span>
+        <span>Welcome back, <strong>${esc(user.fullName)}</strong>! Just pick a game and continue.</span>
       </div>`;
   }
 }
@@ -221,8 +213,8 @@ async function onRegister(e) {
   const gameId = document.getElementById('selectedGameId').value;
   if (!gameId) { setMsg(msgEl, 'Please select a game.', 'error'); return; }
 
-  const fd = new FormData(e.target);
-  const body = { fullName: fd.get('fullName'), phoneNumber: fd.get('phoneNumber'), telegram: fd.get('telegram'), gameId };
+  const fd   = new FormData(e.target);
+  const body = { fullName: fd.get('fullName'), gameId };
 
   try {
     showBtnLoading(e.target.querySelector('[type=submit]'), true);
@@ -253,7 +245,7 @@ async function onReturning(e) {
   setMsg(msgEl, '');
 
   const fd = new FormData(e.target);
-  const body = { phoneNumber: fd.get('phoneNumber'), accessId: fd.get('accessId') };
+  const body = { accessId: fd.get('accessId') };
 
   try {
     showBtnLoading(e.target.querySelector('[type=submit]'), true);
@@ -268,7 +260,6 @@ async function onReturning(e) {
       localStorage.setItem('snx_bkg_id', S.bookingId);
       routeByStatus(data.activeBooking);
     } else {
-      // Pre-fill register form and go there immediately (no delay)
       prefillRegisterForm(data.user);
       setMsg(msgEl, '', '');
       showStep('register');
@@ -318,6 +309,31 @@ function routeByStatus(booking) {
   }
 }
 
+// ─── Payment method switch ────────────────────────────────────────────────────
+function switchPayMethod(method) {
+  document.getElementById('pmtOnline').classList.toggle('active', method === 'online');
+  document.getElementById('pmtCash').classList.toggle('active',   method === 'cash');
+  document.getElementById('onlinePaySection').classList.toggle('hidden', method === 'cash');
+  document.getElementById('cashPaySection').classList.toggle('hidden',   method === 'online');
+}
+
+async function submitCashPayment() {
+  if (!S.token || !S.bookingId) return;
+  const msgEl = document.getElementById('cashPaymentMsg');
+  const btn   = document.getElementById('cashSubmitBtn');
+  try {
+    btnLoadClient(btn, true);
+    const data = await apiFetch(`/api/client/bookings/${S.bookingId}/pay-cash`, { method: 'POST' });
+    setMsg(msgEl, 'Submitted! Please go to the payment desk. Staff will approve your queue number after receiving your cash.', 'success');
+    btn.disabled = true;
+    setTimeout(() => { renderQueueStep(data.booking); showStep('queue'); }, 2200);
+  } catch (err) {
+    setMsg(msgEl, err.message, 'error');
+  } finally {
+    btnLoadClient(btn, false);
+  }
+}
+
 // ─── Payment ──────────────────────────────────────────────────────────────────
 
 // Called from "Proceed to Payment" button on the Access ID screen
@@ -330,13 +346,16 @@ function goPayment() {
 function loadPaymentStep(booking) {
   const info = _infoCache;
   if (info?.paymentMethods) {
-    document.getElementById('ticketPrice').textContent = `${info.ticketPriceBirr || 200} Birr per session`;
+    const price = info.ticketPriceBirr || 200;
+    document.getElementById('ticketPrice').textContent = `${price} Birr per session`;
+    document.getElementById('cashTicketPrice').textContent = `${price} Birr`;
     renderPaymentMethods(info.paymentMethods);
   } else {
-    // Always fetch fresh if cache missing
     apiFetch('/api/info').then((d) => {
       _infoCache = d;
-      document.getElementById('ticketPrice').textContent = `${d.ticketPriceBirr} Birr per session`;
+      const price = d.ticketPriceBirr || 200;
+      document.getElementById('ticketPrice').textContent = `${price} Birr per session`;
+      document.getElementById('cashTicketPrice').textContent = `${price} Birr`;
       renderPaymentMethods(d.paymentMethods);
     }).catch(() => {
       document.getElementById('paymentMethodsDisplay').innerHTML =

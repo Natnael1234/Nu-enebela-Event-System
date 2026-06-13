@@ -3,98 +3,525 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SaNex Live Display</title>
-  <link rel="stylesheet" href="/styles.css" />
+  <title>SaNex Live Display — NU ENEBLA 2026</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Cinzel+Decorative:wght@700;900&family=Orbitron:wght@700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{width:100%;height:100%;overflow:hidden}
+
+    :root{
+      --bg:#06040f;
+      --font:'Inter',system-ui,sans-serif;
+      --cinzel:'Cinzel',serif;
+      --brand:'Orbitron',sans-serif;
+      --deco:'Cinzel Decorative',serif;
+      /* medal palette */
+      --gold:#ffd700; --gold2:#c8860a; --gold3:#ffe680;
+      --silver:#c8d0e8; --silver2:#8898b8; --silver3:#e8eef8;
+      --bronze:#e08040; --bronze2:#a04818; --bronze3:#f0a060;
+      /* frame */
+      --frame-gold:linear-gradient(160deg,#d4a830 0%,#8b5e14 25%,#e8c84a 50%,#7a5010 75%,#d4a830 100%);
+    }
+
+    body{
+      font-family:var(--font);color:#f5e8c8;
+      display:flex;flex-direction:column;height:100vh;
+      background:var(--bg);
+    }
+
+    /* ── BACKGROUND ── */
+    #bg{
+      position:fixed;inset:0;z-index:0;
+      background:url('/images/EventImage.png') center/cover no-repeat;
+      filter:brightness(.22) saturate(1.1) sepia(.15);
+    }
+    #bg-vignette{
+      position:fixed;inset:0;z-index:1;
+      background:
+        radial-gradient(ellipse 70% 60% at 50% 50%,rgba(30,10,50,.4),transparent),
+        linear-gradient(180deg,rgba(6,4,15,.75) 0%,rgba(6,4,15,.4) 40%,rgba(6,4,15,.85) 100%);
+    }
+    /* subtle stone grid texture */
+    #bg-vignette::after{
+      content:'';position:fixed;inset:0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.012) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.012) 1px,transparent 1px);
+      background-size:40px 40px;
+    }
+
+    header,main,footer{position:relative;z-index:10}
+
+    /* ── HEADER ── */
+    header{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:6px 18px;
+      background:rgba(6,4,15,.88);
+      border-bottom:2px solid;
+      border-image:var(--frame-gold) 1;
+      backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+      flex-shrink:0;
+    }
+    .h-left{display:flex;align-items:center;gap:10px}
+    .h-left img{height:30px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(212,168,48,.7))}
+    .h-brand-name{font-family:var(--deco);font-size:.72rem;letter-spacing:.08em;
+      background:linear-gradient(135deg,#d4a830,#ffe680,#c8860a);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .h-brand-sub{font-size:.55rem;letter-spacing:.14em;color:#8898b8;text-transform:uppercase;margin-top:1px}
+
+    .h-clock-wrap{text-align:center}
+    .h-clock{
+      font-family:var(--brand);font-size:1.9rem;font-weight:900;letter-spacing:.08em;
+      color:#f5e8c8;text-shadow:0 0 20px rgba(212,168,48,.5),0 0 40px rgba(212,168,48,.2);
+      border:1px solid rgba(212,168,48,.4);border-radius:8px;
+      padding:2px 14px;background:rgba(212,168,48,.06);
+    }
+
+    .h-right{text-align:right}
+    .h-event{font-family:var(--deco);font-size:.72rem;letter-spacing:.1em;
+      background:linear-gradient(135deg,#d4a830,#ffe680);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .h-live{display:inline-flex;align-items:center;gap:5px;font-size:.55rem;
+      letter-spacing:.12em;color:#00e5a0;text-transform:uppercase;margin-top:3px}
+    .live-dot{width:6px;height:6px;border-radius:50%;background:#00e5a0;
+      animation:livepulse 1.8s infinite}
+    @keyframes livepulse{0%{box-shadow:0 0 0 0 rgba(0,229,160,.6)}70%{box-shadow:0 0 0 7px rgba(0,229,160,0)}100%{box-shadow:0 0 0 0 rgba(0,229,160,0)}}
+
+    /* ── MAIN ── */
+    main{
+      flex:1;display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;padding:8px;
+      min-height:0;
+    }
+
+    .station-col{
+      display:grid;grid-template-rows:auto 1fr;
+      gap:8px;min-height:0;
+    }
+
+    /* ── NOW PLAYING CARD ── */
+    .now-card{
+      background:rgba(6,4,15,.82);
+      border:1px solid rgba(212,168,48,.4);
+      border-radius:14px;padding:16px 20px;
+      backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+      display:flex;align-items:center;gap:16px;flex-shrink:0;
+      box-shadow:0 2px 20px rgba(0,0,0,.4),inset 0 1px 0 rgba(212,168,48,.15);
+    }
+    .now-station-num{
+      width:54px;height:54px;border-radius:50%;flex-shrink:0;
+      background:var(--frame-gold);
+      display:flex;align-items:center;justify-content:center;
+      font-family:var(--brand);font-weight:900;font-size:1.4rem;color:#1a0e00;
+      box-shadow:0 0 20px rgba(212,168,48,.5);
+    }
+    .now-info{flex:1;min-width:0}
+    .now-label{font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+      color:#d4a830;margin-bottom:3px;display:flex;align-items:center;gap:6px}
+    .pulse-dot{width:7px;height:7px;border-radius:50%;background:#00e5a0;flex-shrink:0;animation:livepulse 1.8s infinite}
+    .now-game-name{font-family:var(--cinzel);font-size:.7rem;letter-spacing:.1em;
+      text-transform:uppercase;color:#8898b8;margin-bottom:4px}
+    .now-player-name{
+      font-family:var(--cinzel);font-weight:700;
+      font-size:clamp(1.1rem,2.4vw,1.6rem);
+      color:#f5e8c8;line-height:1.1;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .now-empty-text{color:#4a5070;font-size:clamp(.85rem,1.6vw,1.1rem);font-style:italic}
+    .queue-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center}
+    .queue-label{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:#4a5070;font-weight:600;margin-right:2px}
+    .qchip{
+      font-family:var(--brand);font-size:clamp(.75rem,1.2vw,1rem);font-weight:700;
+      padding:3px 10px;border-radius:6px;
+      background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+      color:#8898b8;letter-spacing:.04em;
+    }
+    .qchip.next{
+      border-color:rgba(212,168,48,.6);color:var(--gold);
+      background:rgba(212,168,48,.1);
+      box-shadow:0 0 8px rgba(212,168,48,.2);
+      font-size:clamp(.85rem,1.4vw,1.1rem);
+    }
+    .now-score-box{
+      flex-shrink:0;
+      background:linear-gradient(145deg,rgba(212,168,48,.12),rgba(212,168,48,.04));
+      border:1px solid rgba(212,168,48,.35);
+      border-radius:10px;padding:8px 14px;text-align:center;
+    }
+    .nsb-label{font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:#8898b8}
+    .nsb-val{font-family:var(--brand);font-size:clamp(1.2rem,2vw,1.6rem);font-weight:900;color:var(--gold);
+      text-shadow:0 0 14px rgba(255,215,0,.5)}
+
+    /* ══════════════════════════════════════════════
+       ORNATE LEADERBOARD CARD
+    ══════════════════════════════════════════════ */
+    .lb-card{
+      position:relative;
+      border-radius:16px;
+      min-height:0;overflow:hidden;
+      display:flex;flex-direction:column;
+    }
+    /* Outer ornate frame (gold gradient border) */
+    .lb-card::before{
+      content:'';position:absolute;inset:0;border-radius:16px;z-index:0;
+      background:var(--frame-gold);
+      padding:2.5px;-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+      -webkit-mask-composite:xor;mask-composite:exclude;
+    }
+    /* Inner dark stone background */
+    .lb-inner{
+      position:absolute;inset:2.5px;border-radius:14px;
+      background:
+        radial-gradient(ellipse at 50% 0%,rgba(80,50,20,.35),transparent 60%),
+        linear-gradient(175deg,#130d1e 0%,#0e0a06 40%,#0a0614 100%);
+      display:flex;flex-direction:column;
+      overflow:hidden;z-index:1;
+    }
+    /* Second inner border for depth */
+    .lb-inner::before{
+      content:'';position:absolute;inset:4px;border-radius:10px;
+      border:1px solid rgba(212,168,48,.12);pointer-events:none;z-index:0;
+    }
+
+    /* corner ornaments */
+    .lb-corner{
+      position:absolute;font-size:.9rem;color:rgba(212,168,48,.6);z-index:2;
+      line-height:1;pointer-events:none;
+    }
+    .lb-corner.tl{top:8px;left:10px}
+    .lb-corner.tr{top:8px;right:10px}
+    .lb-corner.bl{bottom:8px;left:10px}
+    .lb-corner.br{bottom:8px;right:10px}
+
+    .lb-head-inner{
+      padding:8px 16px 6px;
+      border-bottom:1px solid rgba(212,168,48,.25);
+      text-align:center;flex-shrink:0;position:relative;z-index:2;
+    }
+    /* decorative horizontal rule */
+    .lb-head-inner::after{
+      content:'';display:block;height:1px;margin-top:6px;
+      background:linear-gradient(90deg,transparent,rgba(212,168,48,.5) 20%,rgba(212,168,48,.8) 50%,rgba(212,168,48,.5) 80%,transparent);
+    }
+    .lb-trophy-line{
+      display:flex;align-items:center;justify-content:center;gap:8px;
+      font-family:var(--deco);font-size:.7rem;letter-spacing:.12em;
+      background:var(--frame-gold);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+      margin-bottom:2px;
+    }
+    .lb-game-title{
+      font-family:var(--cinzel);font-size:.6rem;letter-spacing:.16em;
+      text-transform:uppercase;color:rgba(138,140,160,.8);
+    }
+    .lb-count{font-size:.55rem;color:#4a5070;margin-top:1px;letter-spacing:.08em}
+
+    .lb-body-inner{
+      flex:1;padding:8px 10px;overflow:hidden;
+      display:flex;flex-direction:column;position:relative;z-index:2;
+    }
+
+    /* ── PODIUM ── */
+    .podium{
+      display:grid;grid-template-columns:1fr 1.12fr 1fr;
+      gap:5px;align-items:end;margin-bottom:8px;
+    }
+    .podium-slot{
+      display:flex;flex-direction:column;align-items:center;gap:3px;
+      border-radius:10px;padding:8px 4px 9px;
+      border:1px solid transparent;
+      position:relative;
+      transition:box-shadow .6s;
+    }
+
+    /* Gold - 1st */
+    .ps-1{
+      background:linear-gradient(175deg,rgba(255,215,0,.1) 0%,rgba(200,134,10,.06) 100%);
+      border-color:rgba(255,215,0,.45);
+      box-shadow:0 0 18px rgba(255,215,0,.12),inset 0 1px 0 rgba(255,215,0,.15);
+      transform:translateY(-6px);
+    }
+    .ps-1.new-leader{animation:crown-flash 1.4s ease}
+    @keyframes crown-flash{
+      0%{box-shadow:0 0 18px rgba(255,215,0,.12)}
+      20%{box-shadow:0 0 60px rgba(255,215,0,.9),0 0 120px rgba(255,215,0,.4)}
+      80%{box-shadow:0 0 30px rgba(255,215,0,.4)}
+      100%{box-shadow:0 0 18px rgba(255,215,0,.12)}
+    }
+
+    /* Silver - 2nd */
+    .ps-2{
+      background:linear-gradient(175deg,rgba(200,208,232,.08) 0%,rgba(140,150,190,.04) 100%);
+      border-color:rgba(200,208,232,.28);
+      box-shadow:inset 0 1px 0 rgba(200,208,232,.1);
+    }
+    /* Bronze - 3rd */
+    .ps-3{
+      background:linear-gradient(175deg,rgba(224,128,64,.08) 0%,rgba(160,72,24,.04) 100%);
+      border-color:rgba(224,128,64,.28);
+      box-shadow:inset 0 1px 0 rgba(224,128,64,.1);
+    }
+
+    /* Rank badge (coin) */
+    .rank-coin{
+      width:clamp(20px,2.5vw,28px);height:clamp(20px,2.5vw,28px);
+      border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      font-family:var(--cinzel);font-weight:700;
+      font-size:clamp(.55rem,.9vw,.75rem);
+      flex-shrink:0;
+    }
+    .rc-1{background:radial-gradient(circle at 35% 30%,var(--gold3),var(--gold) 50%,var(--gold2));
+      color:#3a2000;box-shadow:0 0 10px rgba(255,215,0,.5),0 2px 4px rgba(0,0,0,.5)}
+    .rc-2{background:radial-gradient(circle at 35% 30%,var(--silver3),var(--silver) 50%,var(--silver2));
+      color:#1a2040;box-shadow:0 2px 4px rgba(0,0,0,.4)}
+    .rc-3{background:radial-gradient(circle at 35% 30%,var(--bronze3),var(--bronze) 50%,var(--bronze2));
+      color:#2a0a00;box-shadow:0 2px 4px rgba(0,0,0,.4)}
+
+    /* Crest / shield */
+    .crest-wrap{position:relative}
+    .crest{
+      width:clamp(36px,5vw,56px);height:clamp(42px,5.8vw,66px);
+      position:relative;display:flex;align-items:center;justify-content:center;
+    }
+    /* Shield shape via clip-path */
+    .crest-bg{
+      position:absolute;inset:0;
+      clip-path:polygon(15% 0%,85% 0%,100% 18%,100% 62%,50% 100%,0% 62%,0% 18%);
+    }
+    .crest-bg-1{background:radial-gradient(circle at 40% 35%,#ffe680,#d4a830 50%,#8b5e14);box-shadow:0 0 16px rgba(255,215,0,.4)}
+    .crest-bg-2{background:radial-gradient(circle at 40% 35%,var(--silver3),var(--silver) 50%,var(--silver2))}
+    .crest-bg-3{background:radial-gradient(circle at 40% 35%,var(--bronze3),var(--bronze) 50%,var(--bronze2))}
+    /* inner border on shield */
+    .crest-border{
+      position:absolute;inset:3px;
+      clip-path:polygon(15% 0%,85% 0%,100% 18%,100% 62%,50% 100%,0% 62%,0% 18%);
+      background:rgba(0,0,0,.35);
+      display:flex;align-items:center;justify-content:center;
+    }
+    .crest-icon{font-size:clamp(1rem,2vw,1.6rem);line-height:1;position:relative;z-index:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+
+    /* Podium text */
+    .podium-name{
+      font-family:var(--cinzel);font-weight:700;
+      font-size:clamp(.58rem,1.1vw,.82rem);
+      line-height:1.2;text-align:center;word-break:break-word;
+    }
+    .p-n-1{color:#ffe680;text-shadow:0 0 8px rgba(255,215,0,.5)}
+    .p-n-2{color:var(--silver3)}
+    .p-n-3{color:var(--bronze3)}
+    .podium-score{
+      font-family:var(--brand);font-weight:900;
+      font-size:clamp(.75rem,1.5vw,1.1rem);
+      margin-top:1px;
+    }
+    .p-s-1{color:var(--gold);text-shadow:0 0 14px rgba(255,215,0,.7)}
+    .p-s-2{color:var(--silver)}
+    .p-s-3{color:var(--bronze)}
+
+    /* rank label above crest */
+    .rank-label{
+      font-family:var(--cinzel);font-size:.5rem;letter-spacing:.12em;
+      text-transform:uppercase;margin-bottom:2px;
+    }
+    .rl-1{color:var(--gold)}
+    .rl-2{color:var(--silver)}
+    .rl-3{color:var(--bronze)}
+
+    /* ── DIVIDER ornamental ── */
+    .orn-divider{
+      display:flex;align-items:center;gap:6px;margin:5px 0 6px;flex-shrink:0;
+    }
+    .orn-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(212,168,48,.35),transparent)}
+    .orn-diamond{
+      width:6px;height:6px;background:rgba(212,168,48,.5);
+      transform:rotate(45deg);flex-shrink:0;
+    }
+
+    /* ── Rank rows ── */
+    .lb-rows{flex:1;display:flex;flex-direction:column;gap:1px;overflow:hidden}
+    .lb-row{
+      display:flex;align-items:center;gap:8px;padding:4px 6px;border-radius:5px;
+      animation:rowin .35s ease both;
+    }
+    .lb-row:nth-child(odd){background:rgba(255,255,255,.025)}
+    @keyframes rowin{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+    .row-rank{
+      font-family:var(--cinzel);font-size:.62rem;font-weight:700;
+      color:#4a5070;min-width:18px;text-align:right;flex-shrink:0;
+    }
+    .row-name{flex:1;font-family:var(--cinzel);font-size:.72rem;font-weight:600;
+      color:#c8b898;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .row-score{font-family:var(--brand);font-weight:700;font-size:.72rem;
+      color:#00d4ff;min-width:32px;text-align:right;flex-shrink:0}
+
+    /* ── SINGLE PLAYER / EMPTY STATE ── */
+    .lb-solo{
+      flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+    }
+    .gem{
+      width:clamp(60px,8vw,100px);height:clamp(60px,8vw,100px);
+      position:relative;animation:gem-rotate 8s linear infinite;
+    }
+    @keyframes gem-rotate{0%{filter:hue-rotate(0deg) drop-shadow(0 0 12px rgba(124,110,255,.6))}50%{filter:hue-rotate(40deg) drop-shadow(0 0 24px rgba(0,212,255,.6))}100%{filter:hue-rotate(0deg) drop-shadow(0 0 12px rgba(124,110,255,.6))}}
+    .no-scores{
+      color:#4a5070;font-family:var(--cinzel);font-size:.65rem;
+      letter-spacing:.12em;text-transform:uppercase;text-align:center;
+      animation:fadepulse 2.5s ease infinite;
+    }
+    @keyframes fadepulse{0%,100%{opacity:.5}50%{opacity:.9}}
+
+    /* ── CHAMPION BANNER ── */
+    .champion-banner{
+      position:fixed;top:62px;left:50%;transform:translateX(-50%);z-index:1000;
+      background:linear-gradient(135deg,#d4a830,#ffe680,#c8860a);
+      color:#1a0e00;
+      padding:8px 30px;border-radius:40px;
+      font-family:var(--deco);font-weight:700;font-size:.95rem;letter-spacing:.04em;
+      box-shadow:0 6px 40px rgba(212,168,48,.6),0 2px 0 rgba(255,255,255,.3) inset;
+      display:flex;align-items:center;gap:10px;
+      animation:banner-drop .45s cubic-bezier(.34,1.56,.64,1) both,banner-fade .4s ease 3.4s forwards;
+      pointer-events:none;white-space:nowrap;
+    }
+    @keyframes banner-drop{from{opacity:0;transform:translateX(-50%) translateY(-40px) scale(.8)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+    @keyframes banner-fade{to{opacity:0;transform:translateX(-50%) translateY(-20px)}}
+
+    /* ── FOOTER ── */
+    footer{
+      flex-shrink:0;
+      background:rgba(6,4,15,.9);
+      border-top:1px solid rgba(212,168,48,.25);
+      padding:4px 20px;
+      display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px 22px;
+      backdrop-filter:blur(16px);
+    }
+    .fc{display:flex;align-items:center;gap:5px;font-size:.65rem;color:#6a7090}
+    .fc strong{color:#a8b0c8}
+    .fc a{color:#00d4ff;font-weight:700;text-decoration:none}
+
+    ::-webkit-scrollbar{width:0;height:0}
+  </style>
 </head>
 <body>
-<div class="display-shell">
 
-  <!-- Header -->
-  <div class="display-header">
+<div id="bg"></div>
+<div id="bg-vignette"></div>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="h-left">
+    <img src="/images/Sanex%20Logo%20icon.svg" alt="" onerror="this.style.display='none'" />
     <div>
-      <div class="display-logo brand">SaNex Realities</div>
-      <div class="text-dim text-xs" style="letter-spacing:.1em;margin-top:2px">VIRTUAL &amp; MIXED REALITY GAMING</div>
+      <div class="h-brand-name">SaNex Realities</div>
+      <div class="h-brand-sub">Virtual &amp; Mixed Reality Gaming</div>
     </div>
-    <div style="text-align:center">
-      <div class="display-clock" id="clock">--:--:--</div>
+  </div>
+  <div class="h-clock-wrap">
+    <div class="h-clock" id="clock">--:--:--</div>
+  </div>
+  <div class="h-right">
+    <div class="h-event">NU ENEBLA 2026</div>
+    <div class="h-live"><span class="live-dot"></span>Live Queue &amp; Leaderboard</div>
+  </div>
+</header>
+
+<!-- ── MAIN ── -->
+<main>
+
+  <!-- ── Station 1 ── -->
+  <div class="station-col">
+    <!-- Now Playing -->
+    <div class="now-card">
+      <div class="now-station-num">1</div>
+      <div class="now-info">
+        <div class="now-label"><span class="pulse-dot"></span> Now Playing</div>
+        <div class="now-game-name" id="nc1Game">Station 1</div>
+        <div id="nc1Player" class="now-player-name now-empty-text">Waiting for next player...</div>
+        <div class="queue-chips" id="nc1Queue">
+          <span class="queue-label">Next:</span>
+        </div>
+      </div>
+      <div class="now-score-box" id="nc1ScoreBox" style="display:none">
+        <div class="nsb-label">Score</div>
+        <div class="nsb-val" id="nc1Score">0</div>
+      </div>
     </div>
-    <div class="display-event" style="text-align:right">
-      <div>NU ENEBLA 2026</div>
-      <div style="margin-top:4px;font-size:.75rem;color:var(--accent)">LIVE QUEUE</div>
+
+    <!-- Ornate Leaderboard -->
+    <div class="lb-card">
+      <!-- ornate gold border via ::before on .lb-card -->
+      <div class="lb-inner">
+        <!-- corner ornaments -->
+        <span class="lb-corner tl">❧</span>
+        <span class="lb-corner tr">❧</span>
+        <span class="lb-corner bl">❦</span>
+        <span class="lb-corner br">❦</span>
+
+        <div class="lb-head-inner">
+          <div class="lb-trophy-line">⚔ &nbsp;LEADERBOARD&nbsp; ⚔</div>
+          <div class="lb-game-title" id="lb1GameName">Station 1</div>
+          <div class="lb-count" id="lb1Count"></div>
+        </div>
+
+        <div class="lb-body-inner">
+          <div id="lb1Content"></div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Two stations -->
-  <div class="display-stations" id="displayStations">
-    <!-- Station 1 -->
-    <div class="display-station">
-      <div class="ds-header">
-        <div class="ds-station-num">1</div>
-        <div>
-          <div class="ds-title" id="ds1Title">Station 1</div>
-          <div class="ds-game" id="ds1Game">Loading...</div>
+  <!-- ── Station 2 ── -->
+  <div class="station-col">
+    <!-- Now Playing -->
+    <div class="now-card">
+      <div class="now-station-num">2</div>
+      <div class="now-info">
+        <div class="now-label"><span class="pulse-dot"></span> Now Playing</div>
+        <div class="now-game-name" id="nc2Game">Station 2</div>
+        <div id="nc2Player" class="now-player-name now-empty-text">Waiting for next player...</div>
+        <div class="queue-chips" id="nc2Queue">
+          <span class="queue-label">Next:</span>
         </div>
       </div>
-      <div class="ds-body">
-        <div class="ds-now-playing" id="ds1Now">
-          <div class="ds-now-label">Now Playing</div>
-          <div class="ds-empty-state">Waiting for next player...</div>
-        </div>
-        <div class="ds-next" id="ds1Next">
-          <div class="ds-next-label">Up Next</div>
-          <div class="ds-empty-state text-dim text-sm" id="ds1NextEmpty">No one in queue</div>
-        </div>
+      <div class="now-score-box" id="nc2ScoreBox" style="display:none">
+        <div class="nsb-label">Score</div>
+        <div class="nsb-val" id="nc2Score">0</div>
       </div>
     </div>
 
-    <!-- Station 2 -->
-    <div class="display-station">
-      <div class="ds-header">
-        <div class="ds-station-num">2</div>
-        <div>
-          <div class="ds-title" id="ds2Title">Station 2</div>
-          <div class="ds-game" id="ds2Game">Loading...</div>
+    <!-- Ornate Leaderboard -->
+    <div class="lb-card">
+      <div class="lb-inner">
+        <span class="lb-corner tl">❧</span>
+        <span class="lb-corner tr">❧</span>
+        <span class="lb-corner bl">❦</span>
+        <span class="lb-corner br">❦</span>
+
+        <div class="lb-head-inner">
+          <div class="lb-trophy-line">⚔ &nbsp;LEADERBOARD&nbsp; ⚔</div>
+          <div class="lb-game-title" id="lb2GameName">Station 2</div>
+          <div class="lb-count" id="lb2Count"></div>
         </div>
-      </div>
-      <div class="ds-body">
-        <div class="ds-now-playing" id="ds2Now">
-          <div class="ds-now-label">Now Playing</div>
-          <div class="ds-empty-state">Waiting for next player...</div>
-        </div>
-        <div class="ds-next" id="ds2Next">
-          <div class="ds-next-label">Up Next</div>
-          <div class="ds-empty-state text-dim text-sm" id="ds2NextEmpty">No one in queue</div>
+
+        <div class="lb-body-inner">
+          <div id="lb2Content"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Leaderboard — two stations side by side -->
-  <div class="display-lb-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-    <div class="display-leaderboard">
-      <div class="dlb-title brand" id="dlbTitle1">Station 1 — Top Scores</div>
-      <div id="dlbRows1"><div style="color:var(--text-3);font-size:.88rem">No scores yet.</div></div>
-    </div>
-    <div class="display-leaderboard">
-      <div class="dlb-title brand" id="dlbTitle2">Station 2 — Top Scores</div>
-      <div id="dlbRows2"><div style="color:var(--text-3);font-size:.88rem">No scores yet.</div></div>
-    </div>
-  </div>
+</main>
 
-</div>
-
-  <!-- Contact strip -->
-  <div class="display-contact">
-    <div class="dc-item">🌐 <strong>sanexrealities.com</strong></div>
-    <div class="dc-item">📸
-      <a href="https://www.instagram.com/p/DZIGVkiETaR/?img_index=2&igsh=enpueTEyODY3Y2Fz"
-         target="_blank" style="color:var(--accent);font-weight:700">Instagram</a>
-    </div>
-    <div class="dc-item">✉️ <strong>sanexrealities@gmail.com</strong></div>
-    <div class="dc-item">📞 <strong>0954908037</strong></div>
-  </div>
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="fc">🌐 <strong>sanexrealities.com</strong></div>
+  <div class="fc">📸 <a href="https://www.instagram.com/p/DZIGVkiETaR/" target="_blank">Instagram</a></div>
+  <div class="fc">✉️ <strong>sanexrealities@gmail.com</strong></div>
+  <div class="fc">📞 <strong>0954908037</strong></div>
+</footer>
 
 <script src="/display.js"></script>
 </body>

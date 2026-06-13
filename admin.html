@@ -16,11 +16,11 @@
 <div id="adminLoginView" class="admin-login-wrap">
   <div class="portal-card" style="max-width:420px">
     <div class="portal-logo">
-      <div class="brand" style="font-size:1.05rem">SaNex Realities</div>
-      <p class="text-muted text-xs mt-4">Admin Panel</p>
+      <img src="/images/Sanex%20Logo.svg" alt="SaNex" style="max-height:52px;margin:0 auto;display:block;filter:drop-shadow(0 0 12px rgba(124,110,255,.4))"
+        onerror="this.style.display='none'" />
+      <div class="brand" style="font-size:1rem;margin-top:10px">SaNex Realities</div>
+      <p class="text-muted text-xs mt-4">Admin Panel — Authorized Personnel Only</p>
     </div>
-    <h2 class="portal-title">Sign In</h2>
-    <p class="portal-sub">Authorized personnel only</p>
 
     <form id="loginForm" class="form-stack">
       <div class="field">
@@ -36,27 +36,6 @@
       </div>
     </form>
     <div id="loginMsg" class="mt-12"></div>
-
-    <div class="divider"></div>
-    <p class="text-dim text-xs text-center">First time? <span class="text-accent" style="cursor:pointer" onclick="toggleSignup(true)">Create admin account →</span></p>
-
-    <form id="signupForm" class="form-stack hidden" style="margin-top:16px">
-      <div class="field">
-        <label for="su-name">Full Name</label>
-        <input class="input" type="text" id="su-name" name="fullName" required />
-      </div>
-      <div class="field">
-        <label for="su-email">Email</label>
-        <input class="input" type="email" id="su-email" name="email" required />
-      </div>
-      <div class="field">
-        <label for="su-pass">Password (min 8 chars)</label>
-        <input class="input" type="password" id="su-pass" name="password" minlength="8" required />
-      </div>
-      <button type="submit" class="btn btn-ghost btn-full">Create Account</button>
-      <button type="button" class="btn btn-ghost btn-full btn-sm" onclick="toggleSignup(false)">← Back to Login</button>
-    </form>
-    <div id="signupMsg" class="mt-12"></div>
   </div>
 </div>
 
@@ -87,6 +66,10 @@
         Payments
         <span class="nav-badge hidden" id="paymentsBadge">0</span>
       </button>
+      <button class="nav-link" onclick="openWalkIn()" style="color:var(--success)">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+        Walk-in / Cash
+      </button>
 
       <div class="nav-section-label" style="margin-top:4px">Queue Stations</div>
       <button class="nav-link" data-page="queue1" onclick="navTo('queue1')">
@@ -109,6 +92,10 @@
       <button class="nav-link" data-page="bookings" onclick="navTo('bookings')">
         <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
         Bookings
+      </button>
+      <button class="nav-link" data-page="players" onclick="navTo('players')">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        Players
       </button>
       <button class="nav-link" data-page="finance" onclick="navTo('finance')">
         <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
@@ -288,6 +275,44 @@
         </div>
       </section>
 
+      <!-- ── PLAYERS ───────────────────────────────────────────── -->
+      <section class="admin-page" id="page-players">
+        <div class="page-header">
+          <h2>Players</h2>
+          <p>All registered players with their Access IDs — use this to help someone who lost their code</p>
+        </div>
+        <div class="section-card mb-20">
+          <div class="section-head"><h3>Search</h3></div>
+          <div class="section-body">
+            <input class="input" type="text" id="playerSearch" placeholder="Search by name..." oninput="loadPlayers()" style="max-width:320px" />
+          </div>
+        </div>
+        <div class="section-card">
+          <div class="section-head">
+            <h3>All Players</h3>
+            <span class="text-muted text-sm" id="playerCount"></span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Access ID</th>
+                  <th>Queue #</th>
+                  <th>Station</th>
+                  <th>Status</th>
+                  <th>Payment</th>
+                  <th>Bookings</th>
+                </tr>
+              </thead>
+              <tbody id="playersTableBody">
+                <tr><td colspan="6" class="text-dim text-sm" style="text-align:center;padding:20px">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <!-- ── BOOKINGS ──────────────────────────────────────────── -->
       <section class="admin-page" id="page-bookings">
         <div class="page-header">
@@ -430,6 +455,62 @@
     <div style="overflow:auto;flex:1;padding:12px;display:flex;align-items:center;justify-content:center">
       <img id="modalImg" src="" alt="Payment Screenshot" style="max-width:100%;max-height:70vh;border-radius:var(--r-sm);display:block" />
     </div>
+  </div>
+</div>
+
+<!-- Walk-in / Cash Registration Modal -->
+<div id="walkInModal" class="hidden" style="
+  position:fixed;inset:0;z-index:9999;
+  background:rgba(0,0,0,.85);
+  display:none;
+  align-items:center;justify-content:center;
+  padding:20px;
+  backdrop-filter:blur(4px);
+" onclick="closeWalkIn()">
+  <div style="
+    width:100%;max-width:460px;
+    background:#0d1628;
+    border:1px solid var(--border-2);
+    border-radius:var(--r-xl);
+    padding:28px 24px;
+    box-shadow:0 30px 70px rgba(0,0,0,.7);
+    max-height:92vh;overflow-y:auto;
+  " onclick="event.stopPropagation()">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:3px">💵 Walk-in / Cash Registration</h2>
+        <p class="text-muted text-sm">Register a player and approve instantly. No screenshot needed.</p>
+      </div>
+      <button onclick="closeWalkIn()" style="
+        background:var(--surface-2);border:1px solid var(--border-2);
+        color:var(--text-2);border-radius:50%;width:32px;height:32px;
+        display:flex;align-items:center;justify-content:center;cursor:pointer;
+        font-size:.9rem;flex-shrink:0
+      ">✕</button>
+    </div>
+
+    <form id="walkInForm" class="form-stack">
+      <div class="field">
+        <label>Full Name</label>
+        <input class="input" type="text" id="wi-name" placeholder="Player's full name" required />
+      </div>
+      <div class="field">
+        <label>Select Station / Game</label>
+        <div id="wi-game-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
+          <!-- injected by JS -->
+        </div>
+        <input type="hidden" id="wi-game-id" />
+      </div>
+      <div style="background:rgba(0,229,160,.07);border:1px solid rgba(0,229,160,.25);border-radius:var(--r-sm);padding:12px;font-size:.88rem">
+        <strong style="color:var(--success)">Cash payment — 200 Birr</strong><br/>
+        <span class="text-muted">This will approve the booking immediately and assign a queue number.</span>
+      </div>
+      <button type="submit" class="btn btn-success btn-full btn-lg" style="margin-top:4px">
+        ✓ Register &amp; Approve Now
+      </button>
+    </form>
+    <div id="walkInMsg" class="mt-12"></div>
   </div>
 </div>
 

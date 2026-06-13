@@ -749,8 +749,64 @@ tbody tr:hover td { background: var(--surface); }
   margin-top: 10px;
 }
 
-/* Payment methods card */
-.payment-methods {
+/* Payment method toggle */
+.pay-method-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-sm);
+  padding: 4px;
+  margin-bottom: 18px;
+}
+.pmt-btn {
+  border: none;
+  background: none;
+  border-radius: 7px;
+  padding: 10px 14px;
+  font-size: .92rem;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.pmt-btn.active {
+  background: linear-gradient(135deg, rgba(124,110,255,.2), rgba(0,212,255,.12));
+  color: var(--text);
+  border: 1px solid rgba(124,110,255,.35);
+}
+
+/* Cash payment card */
+.cash-payment-card {
+  background: rgba(0,229,160,.06);
+  border: 1px solid rgba(0,229,160,.25);
+  border-radius: var(--r);
+  padding: 28px 20px;
+  text-align: center;
+}
+.cash-icon { font-size: 3rem; margin-bottom: 14px; }
+
+/* Walk-in game selector */
+.wi-game-btn {
+  border: 2px solid var(--border-2);
+  border-radius: var(--r-sm);
+  padding: 12px 10px;
+  text-align: center;
+  cursor: pointer;
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--text-2);
+  background: var(--surface);
+  transition: border-color .15s, background .15s, color .15s;
+}
+.wi-game-btn:hover { border-color: var(--primary); color: var(--text); }
+.wi-game-btn.selected {
+  border-color: var(--primary);
+  background: rgba(124,110,255,.12);
+  color: var(--text);
+}
+.wi-game-btn .wi-station { font-size: .7rem; color: var(--primary); margin-bottom: 4px; }
   background: rgba(0,229,160,.06);
   border: 1px solid rgba(0,229,160,.2);
   border-radius: var(--r);

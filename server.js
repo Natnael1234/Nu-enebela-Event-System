@@ -241,47 +241,22 @@ app.post('/api/client/register',
   rateLimit(5, 10 * 60 * 1000),
   (req, res) => {
     const db = readDb();
-    const { fullName, phoneNumber, telegram, gameId } = req.body;
+    const { fullName, gameId } = req.body;
 
-    if (!isNonEmptyStr(fullName) || !isNonEmptyStr(phoneNumber) || !isNonEmptyStr(gameId)) {
-      return res.status(400).json({ error: 'Full name, phone number, and game selection are required.' });
+    if (!isNonEmptyStr(fullName) || !isNonEmptyStr(gameId)) {
+      return res.status(400).json({ error: 'Full name and game selection are required.' });
     }
 
     const game = db.games.find((g) => g.id === gameId && g.active);
     if (!game) return res.status(400).json({ error: 'Selected game is not available.' });
 
-    const normPhone = normalizePhone(phoneNumber);
-    if (normPhone.length < 9 || normPhone.length > 15) {
-      return res.status(400).json({ error: 'Enter a valid phone number.' });
-    }
-
-    const existing = db.users.find((u) => normalizePhone(u.phoneNumber) === normPhone);
-    if (existing) {
-      const activeBooking = db.bookings.find(
-        (b) => b.userId === existing.id && isActiveStatus(b.status)
-      );
-      if (activeBooking) {
-        return res.status(409).json({
-          error: 'An account with this phone number already has an active booking.',
-          hint: 'Use the Returning Player login with your Access ID.',
-        });
-      }
-    }
-
-    const user = existing
-      ? (() => { existing.fullName = sanitize(fullName); existing.telegram = sanitize(telegram || ''); return existing; })()
-      : (() => {
-          const u = {
-            id: newId('usr'),
-            fullName: sanitize(fullName),
-            phoneNumber: sanitize(phoneNumber),
-            telegram: sanitize(telegram || ''),
-            accessId: generateAccessId(),
-            createdAt: now(),
-          };
-          db.users.push(u);
-          return u;
-        })();
+    const user = {
+      id:        newId('usr'),
+      fullName:  sanitize(fullName),
+      accessId:  generateAccessId(),
+      createdAt: now(),
+    };
+    db.users.push(user);
 
     const booking = {
       id: newId('bkg'),
@@ -320,20 +295,16 @@ app.post('/api/client/access',
   rateLimit(10, 10 * 60 * 1000),
   (req, res) => {
     const db = readDb();
-    const { phoneNumber, accessId } = req.body;
+    const rawId = (req.body.accessId || '').trim().toUpperCase();
 
-    if (!isNonEmptyStr(phoneNumber) || !isNonEmptyStr(accessId)) {
-      return res.status(400).json({ error: 'Phone number and Access ID are required.' });
+    if (!rawId) {
+      return res.status(400).json({ error: 'Access ID is required.' });
     }
 
-    const normPhone = normalizePhone(phoneNumber);
-    const user = db.users.find(
-      (u) => normalizePhone(u.phoneNumber) === normPhone &&
-             u.accessId === accessId.trim().toUpperCase()
-    );
+    const user = db.users.find((u) => u.accessId === rawId);
 
     if (!user) {
-      return res.status(401).json({ error: 'Incorrect phone number or Access ID. Please check and try again.' });
+      return res.status(401).json({ error: 'Access ID not found. Please check and try again.' });
     }
 
     const token = createSession(db, 'client', user.id);
@@ -452,6 +423,82 @@ app.get('/api/client/bookings/:bookingId/feedback', requireAuth('client'), (req,
   }
   const entry = db.feedback.find((f) => f.bookingId === booking.id);
   res.json({ submitted: !!entry, feedback: entry || null });
+});
+
+// ─── Client: cash payment (no screenshot needed) ─────────────────────────────
+app.post('/api/client/bookings/:bookingId/pay-cash',
+  requireAuth('client'),
+  rateLimit(5, 15 * 60 * 1000),
+  (req, res) => {
+    const db = readDb();
+    const booking = db.bookings.find((b) => b.id === req.params.bookingId);
+
+    if (!booking || booking.userId !== req.auth.id) {
+      return res.status(404).json({ error: 'Booking not found.' });
+    }
+    if (!['awaiting_payment', 'payment_rejected'].includes(booking.status)) {
+      return res.status(400).json({ error: 'This booking is not awaiting payment.' });
+    }
+
+    booking.status = 'payment_review';
+    booking.paymentMethod = 'cash';
+    booking.paymentRejectReason = '';
+    booking.paymentSubmittedAt = now();
+    writeDb(db);
+
+    res.json({ booking: expandBooking(db, booking) });
+  }
+);
+
+// ─── Admin: walk-in / cash registration (register + approve in one step) ──────
+app.post('/api/admin/walk-in', requireAuth('admin'), (req, res) => {
+  const db = readDb();
+  const { fullName, gameId } = req.body;
+
+  if (!isNonEmptyStr(fullName) || !isNonEmptyStr(gameId)) {
+    return res.status(400).json({ error: 'Full name and game are required.' });
+  }
+
+  const game = db.games.find((g) => g.id === gameId && g.active);
+  if (!game) return res.status(400).json({ error: 'Selected game is not available.' });
+
+  const user = {
+    id:        newId('usr'),
+    fullName:  sanitize(fullName),
+    accessId:  generateAccessId(),
+    createdAt: now(),
+  };
+  db.users.push(user);
+
+  const queueNumber = getNextQueueNum(db, gameId);
+  const booking = {
+    id:                  newId('bkg'),
+    userId:              user.id,
+    gameId,
+    status:              'approved_waiting',
+    paymentMethod:       'cash',
+    queueNumber,
+    paymentProofPath:    '',
+    paymentRejectReason: '',
+    score:               null,
+    gameplayMedia:       [],
+    missedCount:         0,
+    createdAt:           now(),
+    paymentSubmittedAt:  now(),
+    approvedAt:          now(),
+    startedAt:           null,
+    completedAt:         null,
+    missedAt:            null,
+  };
+
+  db.bookings.push(booking);
+  writeDb(db);
+
+  res.status(201).json({
+    user:    safeUser(user),
+    booking: { ...expandBooking(db, booking), queueMsg: queueMessage(db, booking) },
+    accessId: user.accessId,
+  });
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -793,6 +840,39 @@ app.get('/api/admin/finance', requireAuth('admin'), (_req, res) => {
   });
 });
 
+// ─── Admin: all players with Access IDs ──────────────────────────────────────
+app.get('/api/admin/players', requireAuth('admin'), (req, res) => {
+  const db = readDb();
+  const search = (req.query.q || '').toLowerCase().trim();
+
+  const players = db.users
+    .filter((u) => !search || u.fullName.toLowerCase().includes(search))
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .map((u) => {
+      const bookings = db.bookings.filter((b) => b.userId === u.id);
+      const active   = bookings.find((b) => isActiveStatus(b.status));
+      const latest   = bookings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+      return {
+        id:        u.id,
+        fullName:  u.fullName,
+        accessId:  u.accessId,
+        createdAt: u.createdAt,
+        totalBookings: bookings.length,
+        activeBooking: active ? {
+          queueNumber:   active.queueNumber,
+          status:        active.status,
+          gameName:      db.games.find((g) => g.id === active.gameId)?.name || '--',
+          stationNumber: db.games.find((g) => g.id === active.gameId)?.stationNumber,
+          paymentMethod: active.paymentMethod || 'online',
+        } : null,
+        paymentMethod:     latest?.paymentMethod || null,
+        lastBookingStatus: latest?.status || null,
+      };
+    });
+
+  res.json({ players, total: players.length });
+});
+
 // ═════════════════════════════════════════════════════════════════════════════
 //  ADMIN FEEDBACK
 // ═════════════════════════════════════════════════════════════════════════════
@@ -838,10 +918,13 @@ app.put('/api/admin/settings', requireAuth('admin'), (req, res) => {
 // ─── SPA catch-all ────────────────────────────────────────────────────────────
 // ─── HTML entry points — served directly from project root ───────────────────
 app.get('/',             (_req, res) => res.sendFile(path.join(ROOT, 'index.html')));
-app.get('/admin',        (_req, res) => res.sendFile(path.join(ROOT, 'admin.html')));
-app.get('/admin.html',   (_req, res) => res.sendFile(path.join(ROOT, 'admin.html')));
-app.get('/display',      (_req, res) => res.sendFile(path.join(ROOT, 'display.html')));
-app.get('/display.html', (_req, res) => res.sendFile(path.join(ROOT, 'display.html')));
+app.get('/aleka',              (_req, res) => res.sendFile(path.join(ROOT, 'admin.html')));
+app.get('/aleka/temezgeb',     (_req, res) => res.sendFile(path.join(ROOT, 'temezgeb.html')));
+app.get('/display',            (_req, res) => res.sendFile(path.join(ROOT, 'display.html')));
+app.get('/display.html',       (_req, res) => res.sendFile(path.join(ROOT, 'display.html')));
+// Old admin paths return 404 — not discoverable
+app.get('/admin',              (_req, res) => res.status(404).send('Not found'));
+app.get('/admin.html',         (_req, res) => res.status(404).send('Not found'));
 
 // ─── Catch-all → client portal ───────────────────────────────────────────────
 app.get(/.*/, (_req, res) => res.sendFile(path.join(ROOT, 'index.html')));
@@ -991,7 +1074,7 @@ function isActiveStatus(status) {
 }
 
 function safeUser(user) {
-  return { id: user.id, fullName: user.fullName, phoneNumber: user.phoneNumber, telegram: user.telegram, createdAt: user.createdAt };
+  return { id: user.id, fullName: user.fullName, createdAt: user.createdAt };
 }
 
 function safeAdmin(admin) {

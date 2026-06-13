@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Setup</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- No indexing -->
+  <meta name="robots" content="noindex, nofollow" />
+</head>
+<body>
+<div class="admin-login-wrap">
+  <div class="portal-card" style="max-width:440px">
+    <div class="portal-logo">
+      <img src="/images/Sanex%20Logo.svg" alt="SaNex"
+        style="max-height:52px;margin:0 auto;display:block;filter:drop-shadow(0 0 12px rgba(124,110,255,.4))"
+        onerror="this.style.display='none'" />
+      <div class="brand" style="font-size:1rem;margin-top:10px">SaNex Realities</div>
+      <p class="text-muted text-xs mt-4" style="text-align:center">Create Admin Account</p>
+    </div>
+
+    <div class="alert alert-warning" style="margin-bottom:18px">
+      <span>🔒</span>
+      <span>This page is for authorized staff only. Do not share this URL.</span>
+    </div>
+
+    <div id="setupDone" class="hidden">
+      <div class="alert alert-success" style="margin-bottom:16px">
+        <span>✅</span>
+        <span id="setupDoneMsg">Admin account created successfully.</span>
+      </div>
+      <a href="/aleka" class="btn btn-primary btn-full">Go to Admin Panel →</a>
+    </div>
+
+    <form id="setupForm" class="form-stack">
+      <div class="field">
+        <label for="s-name">Full Name</label>
+        <input class="input" type="text" id="s-name" placeholder="Your full name" required autocomplete="name" />
+      </div>
+      <div class="field">
+        <label for="s-email">Email Address</label>
+        <input class="input" type="email" id="s-email" placeholder="admin@example.com" required autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="s-pass">Password <span style="color:var(--text-3)">(min 8 characters)</span></label>
+        <input class="input" type="password" id="s-pass" placeholder="••••••••" minlength="8" required autocomplete="new-password" />
+      </div>
+      <div class="field">
+        <label for="s-pass2">Confirm Password</label>
+        <input class="input" type="password" id="s-pass2" placeholder="••••••••" minlength="8" required autocomplete="new-password" />
+      </div>
+      <button type="submit" class="btn btn-primary btn-full btn-lg">Create Admin Account</button>
+      <a href="/aleka" class="btn btn-ghost btn-full btn-sm" style="text-align:center">← Back to Login</a>
+    </form>
+    <div id="setupMsg" class="mt-12"></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+document.getElementById('setupForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msgEl = document.getElementById('setupMsg');
+  msgEl.innerHTML = '';
+
+  const name  = document.getElementById('s-name').value.trim();
+  const email = document.getElementById('s-email').value.trim();
+  const pass  = document.getElementById('s-pass').value;
+  const pass2 = document.getElementById('s-pass2').value;
+
+  if (pass !== pass2) {
+    msgEl.innerHTML = '<div class="alert alert-error"><span>❌</span><span>Passwords do not match.</span></div>';
+    return;
+  }
+
+  const btn = e.target.querySelector('[type=submit]');
+  btn.disabled = true;
+  btn.textContent = 'Creating...';
+
+  try {
+    const res  = await fetch('/api/admin/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fullName: name, email, password: pass }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Account creation failed.');
+    }
+
+    localStorage.setItem('snx_a_tk', data.token);
+    document.getElementById('setupForm').classList.add('hidden');
+    document.getElementById('setupDoneMsg').textContent =
+      `Admin account created for ${data.admin.fullName} (${data.admin.role}).`;
+    document.getElementById('setupDone').classList.remove('hidden');
+  } catch (err) {
+    msgEl.innerHTML = `<div class="alert alert-error"><span>❌</span><span>${esc(err.message)}</span></div>`;
+    btn.disabled = false;
+    btn.textContent = 'Create Admin Account';
+  }
+});
+
+function esc(v) {
+  return String(v || '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+</script>
+</body>
+</html>

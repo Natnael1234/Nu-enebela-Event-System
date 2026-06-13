@@ -160,27 +160,17 @@
     </div>
 
     <h2 class="portal-title">New Booking</h2>
-    <p class="portal-sub">Fill in your details and pick a VR/MR experience</p>
+    <p class="portal-sub">Enter your name and pick a VR/MR experience</p>
 
     <form id="registerForm" class="form-stack">
       <div class="field">
         <label for="reg-name">Full Name</label>
         <input class="input" type="text" id="reg-name" name="fullName" placeholder="Your full name" autocomplete="name" required />
       </div>
-      <div class="field">
-        <label for="reg-phone">Phone Number</label>
-        <input class="input" type="tel" id="reg-phone" name="phoneNumber" placeholder="09XXXXXXXX" autocomplete="tel" required />
-      </div>
-      <div class="field">
-        <label for="reg-telegram">Telegram Username <span style="color:var(--text-3)">(optional)</span></label>
-        <input class="input" type="text" id="reg-telegram" name="telegram" placeholder="@username" />
-      </div>
 
       <div class="field">
         <label>Choose Your Experience</label>
-        <div class="game-grid" id="gameGrid">
-          <!-- injected by JS -->
-        </div>
+        <div class="game-grid" id="gameGrid"></div>
         <input type="hidden" id="selectedGameId" name="gameId" required />
       </div>
 
@@ -201,16 +191,17 @@
     </div>
     <div class="portal-logo"><div class="brand">SaNex Realities</div></div>
     <h2 class="portal-title">Returning Player</h2>
-    <p class="portal-sub">Enter the phone number and Access ID you received when you registered.</p>
+    <p class="portal-sub">Enter the Access ID you received when you registered.</p>
 
     <form id="returningForm" class="form-stack">
       <div class="field">
-        <label for="ret-phone">Phone Number</label>
-        <input class="input" type="tel" id="ret-phone" name="phoneNumber" placeholder="09XXXXXXXX" required />
-      </div>
-      <div class="field">
-        <label for="ret-aid">Access ID</label>
-        <input class="input" type="text" id="ret-aid" name="accessId" placeholder="XXXXXXXXXX" maxlength="12" autocapitalize="characters" style="letter-spacing:.15em; font-family: var(--font-brand)" required />
+        <label for="ret-aid">Your Access ID</label>
+        <input class="input" type="text" id="ret-aid" name="accessId"
+          placeholder="XXXXXXXXXX" maxlength="12"
+          autocapitalize="characters"
+          style="letter-spacing:.18em;font-family:var(--font-brand);font-size:1.1rem;text-align:center"
+          required />
+        <p class="text-dim text-xs" style="margin-top:5px">The 10-character code you received when you booked</p>
       </div>
       <div class="form-actions">
         <button type="submit" class="btn btn-primary btn-full btn-lg">Enter My Queue →</button>
@@ -268,31 +259,57 @@
     </div>
 
     <h2 class="portal-title">Complete Payment</h2>
-    <p class="portal-sub">Transfer the ticket fee to one of the accounts below, then upload your screenshot.</p>
+    <p class="portal-sub">Choose how you'd like to pay for your session.</p>
 
-    <div class="payment-methods">
-      <h4>Payment Methods</h4>
-      <div class="ticket-price" id="ticketPrice">200 Birr per session</div>
-      <div id="paymentMethodsDisplay">
-        <!-- injected -->
-      </div>
+    <!-- Payment method toggle -->
+    <div class="pay-method-toggle" id="payMethodToggle">
+      <button type="button" class="pmt-btn active" id="pmtOnline" onclick="switchPayMethod('online')">
+        📱 Online Transfer
+      </button>
+      <button type="button" class="pmt-btn" id="pmtCash" onclick="switchPayMethod('cash')">
+        💵 Cash
+      </button>
     </div>
 
-    <form id="paymentForm" class="form-stack">
-      <div class="field">
-        <label>Payment Screenshot</label>
-        <div class="upload-area" id="uploadArea">
-          <input type="file" id="proofFile" accept="image/*" />
-          <div class="upload-icon">📸</div>
-          <p>Tap to select your payment screenshot</p>
-          <p class="file-name hidden" id="uploadFileName"></p>
+    <!-- Online: show accounts + upload -->
+    <div id="onlinePaySection">
+      <div class="payment-methods">
+        <h4>Payment Methods</h4>
+        <div class="ticket-price" id="ticketPrice">200 Birr per session</div>
+        <div id="paymentMethodsDisplay"></div>
+      </div>
+      <form id="paymentForm" class="form-stack">
+        <div class="field">
+          <label>Payment Screenshot</label>
+          <div class="upload-area" id="uploadArea">
+            <input type="file" id="proofFile" accept="image/*" />
+            <div class="upload-icon">📸</div>
+            <p>Tap to select your payment screenshot</p>
+            <p class="file-name hidden" id="uploadFileName"></p>
+          </div>
         </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary btn-full btn-lg">I Have Paid — Submit Screenshot</button>
+        </div>
+      </form>
+      <div id="paymentMsg" class="mt-12"></div>
+    </div>
+
+    <!-- Cash: instructions + submit -->
+    <div id="cashPaySection" class="hidden">
+      <div class="cash-payment-card">
+        <div class="cash-icon">💵</div>
+        <h3 style="margin-bottom:6px">Pay at the Desk</h3>
+        <p class="text-muted" style="font-size:.92rem;margin-bottom:4px">Bring <strong style="color:var(--warning)" id="cashTicketPrice">200 Birr</strong> in cash to the SaNex Realities payment desk.</p>
+        <p class="text-muted text-sm">A staff member will confirm your payment and approve your queue number.</p>
       </div>
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary btn-full btn-lg">I Have Paid — Submit Screenshot</button>
+      <div class="form-actions mt-16">
+        <button type="button" class="btn btn-primary btn-full btn-lg" id="cashSubmitBtn" onclick="submitCashPayment()">
+          I'm Heading to the Desk →
+        </button>
       </div>
-    </form>
-    <div id="paymentMsg" class="mt-12"></div>
+      <div id="cashPaymentMsg" class="mt-12"></div>
+    </div>
 
     <div id="rejectionNotice" class="hidden mt-12">
       <div class="alert alert-error">

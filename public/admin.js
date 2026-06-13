@@ -12,7 +12,6 @@ const GAME_IDS = ['station_1', 'station_2'];
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('loginForm').addEventListener('submit', onLogin);
-  document.getElementById('signupForm').addEventListener('submit', onSignup);
   document.getElementById('paymentSettingsForm').addEventListener('submit', onSaveSettings);
 
   if (A.token) {
@@ -30,11 +29,6 @@ async function checkAuthAndLoad() {
 }
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
-function toggleSignup(show) {
-  document.getElementById('signupForm').classList.toggle('hidden', !show);
-  document.getElementById('loginForm').classList.toggle('hidden', show);
-}
-
 async function onLogin(e) {
   e.preventDefault();
   const fd = new FormData(e.target);
@@ -58,28 +52,6 @@ async function onLogin(e) {
   }
 }
 
-async function onSignup(e) {
-  e.preventDefault();
-  const fd = new FormData(e.target);
-  const msgEl = document.getElementById('signupMsg');
-  setMsg(msgEl, '');
-  const btn = e.target.querySelector('[type=submit]');
-
-  try {
-    btnLoad(btn, true);
-    const data = await api('/api/admin/register', {
-      method: 'POST',
-      json: { fullName: fd.get('fullName'), email: fd.get('email'), password: fd.get('password') },
-    });
-    A.token = data.token;
-    localStorage.setItem('snx_a_tk', A.token);
-    showApp(data.admin);
-  } catch (err) {
-    setMsg(msgEl, err.message, 'error');
-  } finally {
-    btnLoad(btn, false);
-  }
-}
 
 function adminLogout() {
   clearAdminSession();
@@ -126,6 +98,7 @@ function navTo(page) {
     queue1:   'Station 1 Queue',
     queue2:   'Station 2 Queue',
     bookings: 'All Bookings',
+    players:  'Players',
     finance:  'Finance',
     feedback: 'Player Feedback',
     settings: 'Settings',
@@ -138,6 +111,7 @@ function navTo(page) {
   if (page === 'queue1')    loadQueueStation(1);
   if (page === 'queue2')    loadQueueStation(2);
   if (page === 'bookings')  loadBookings();
+  if (page === 'players')   loadPlayers();
   if (page === 'finance')   loadFinance();
   if (page === 'feedback')  loadFeedback();
 }
@@ -275,6 +249,7 @@ function renderPayments(list) {
           <div class="text-sm" style="margin-top:4px">
             ${statusBadge('payment_review')}
             &nbsp;&nbsp;Station ${item.game?.stationNumber || '--'} — ${esc(item.game?.name || '--')}
+            ${item.paymentMethod === 'cash' ? '<span class="badge badge-warning" style="margin-left:6px">💵 Cash</span>' : ''}
           </div>
         </div>
         ${item.paymentProofPath ? `<button type="button" class="btn btn-ghost btn-sm" style="flex-shrink:0" onclick="openModal('/${esc(item.paymentProofPath)}')">View Screenshot 🖼️</button>` : ''}
@@ -578,6 +553,155 @@ async function loadFinance() {
       </div>
     `;
   } catch (err) { console.error(err); }
+}
+
+// ─── Walk-in / Cash registration ─────────────────────────────────────────────
+function openWalkIn() {
+  closeSidebar();
+  const modal = document.getElementById('walkInModal');
+  modal.style.display = 'flex';
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  loadWalkInGames();
+}
+
+function closeWalkIn() {
+  const modal = document.getElementById('walkInModal');
+  modal.style.display = 'none';
+  modal.classList.add('hidden');
+  document.body.style.overflow = '';
+  document.getElementById('walkInMsg').innerHTML = '';
+  document.getElementById('walkInForm').reset();
+  document.getElementById('wi-game-id').value = '';
+  document.querySelectorAll('.wi-game-btn').forEach((b) => b.classList.remove('selected'));
+}
+
+async function loadWalkInGames() {
+  const grid = document.getElementById('wi-game-grid');
+  try {
+    const data = await api('/api/info');
+    grid.innerHTML = '';
+    data.games.forEach((g) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'wi-game-btn';
+      btn.dataset.gameId = g.id;
+      btn.innerHTML = `<div class="wi-station">Station ${g.stationNumber}</div>${esc(g.name)}`;
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.wi-game-btn').forEach((b) => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        document.getElementById('wi-game-id').value = g.id;
+      });
+      grid.appendChild(btn);
+    });
+  } catch (_) {
+    grid.innerHTML = '<p class="text-muted text-sm">Could not load games.</p>';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('walkInForm').addEventListener('submit', handleWalkIn);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeWalkIn(); });
+});
+
+async function handleWalkIn(e) {
+  e.preventDefault();
+  const msgEl  = document.getElementById('walkInMsg');
+  const gameId = document.getElementById('wi-game-id').value;
+  const btn    = e.target.querySelector('[type=submit]');
+
+  if (!gameId) { setMsg(msgEl, 'Please select a station.', 'error'); return; }
+
+  try {
+    btnLoad(btn, true);
+    const data = await api('/api/admin/walk-in', {
+      method: 'POST',
+      json: {
+        fullName: document.getElementById('wi-name').value,
+        gameId,
+      },
+    });
+    const b = data.booking;
+    setMsg(msgEl, `✅ ${data.user.fullName} registered — Queue #${b.queueNumber} | Station ${b.game?.stationNumber}. Access ID: ${data.accessId}`, 'success');
+    e.target.reset();
+    document.getElementById('wi-game-id').value = '';
+    document.querySelectorAll('.wi-game-btn').forEach((b) => b.classList.remove('selected'));
+    silentRefresh();
+  } catch (err) {
+    setMsg(msgEl, err.message, 'error');
+  } finally {
+    btnLoad(btn, false);
+  }
+}
+
+// ─── Players ──────────────────────────────────────────────────────────────────
+async function loadPlayers() {
+  const tbody    = document.getElementById('playersTableBody');
+  const countEl  = document.getElementById('playerCount');
+  const query    = document.getElementById('playerSearch')?.value || '';
+
+  tbody.innerHTML = `<tr><td colspan="6" class="text-dim text-sm" style="text-align:center;padding:16px">Loading...</td></tr>`;
+
+  try {
+    const params = query ? `?q=${encodeURIComponent(query)}` : '';
+    const data   = await api(`/api/admin/players${params}`);
+    countEl.textContent = `${data.total} player${data.total !== 1 ? 's' : ''}`;
+    tbody.innerHTML = '';
+
+    if (!data.players.length) {
+      tbody.innerHTML = `<tr><td colspan="6" class="text-dim text-sm" style="text-align:center;padding:20px">No players found.</td></tr>`;
+      return;
+    }
+
+    data.players.forEach((p) => {
+      const ab = p.activeBooking;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="player-avatar" style="font-size:.85rem">${esc(p.fullName[0] || '?')}</div>
+            <strong>${esc(p.fullName)}</strong>
+          </div>
+        </td>
+        <td>
+          <span style="
+            font-family:var(--font-brand);
+            font-size:.85rem;
+            letter-spacing:.1em;
+            background:rgba(124,110,255,.12);
+            border:1px solid rgba(124,110,255,.3);
+            border-radius:6px;
+            padding:3px 8px;
+            cursor:pointer;
+            color:var(--primary)
+          " title="Click to copy" onclick="copyPlayerAccessId(this,'${esc(p.accessId)}')">${esc(p.accessId)}</span>
+        </td>
+        <td>${ab ? `<strong>#${ab.queueNumber || '?'}</strong>` : '<span class="text-dim">—</span>'}</td>
+        <td>${ab ? `Station ${ab.stationNumber}` : '<span class="text-dim">—</span>'}</td>
+        <td>${ab ? statusBadge(ab.status) : (p.lastBookingStatus ? statusBadge(p.lastBookingStatus) : '<span class="text-dim">—</span>')}</td>
+        <td>${payMethodBadge(p.paymentMethod)}</td>
+        <td class="text-muted">${p.totalBookings}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="6" style="color:var(--danger);padding:16px">${esc(err.message)}</td></tr>`;
+  }
+}
+
+function payMethodBadge(method) {
+  if (method === 'cash')    return '<span class="badge badge-warning">💵 Cash</span>';
+  if (method === 'online')  return '<span class="badge badge-info">📱 Online</span>';
+  return '<span class="text-dim">—</span>';
+}
+
+function copyPlayerAccessId(el, accessId) {
+  navigator.clipboard?.writeText(accessId).then(() => {
+    const orig = el.textContent;
+    el.textContent = 'Copied!';
+    el.style.color = 'var(--success)';
+    setTimeout(() => { el.textContent = orig; el.style.color = ''; }, 1800);
+  });
 }
 
 // ─── Feedback ─────────────────────────────────────────────────────────────────
